@@ -1,0 +1,170 @@
+body {
+  display: grid;
+  grid-template-rows: 1fr auto;
+  place-content: center;
+  place-items: center;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    "Helvetica Neue", Arial, sans-serif;
+  font-size: 1.4rem;
+  background-color: #f6f8fa;
+  color: #24292e;
+  margin: 0;
+  padding: 20px;
+}
+
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 20px;
+  border: 1px solid #e1e4e8;
+  border-radius: 6px;
+  box-shadow: 0 1px 3px rgba(27, 31, 35, 0.12);
+  max-width: 400px;
+  max-height: 430px;
+  background-color: #ffffff;
+}
+
+.header-container {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.github-logo {
+  width: 40px;
+  height: 40px;
+}
+
+.title {
+  font-size: 2rem;
+  font-weight: 600;
+  color: #000;
+  text-align: center;
+}
+
+.form {
+  display: flex;
+  gap: 12px;
+  flex-direction: column;
+}
+
+.select-programming-languages {
+  border-radius: 6px;
+  border: 1px solid #d1d5da;
+  height: 38px;
+  padding: 0 8px;
+  font-size: 1.4rem;
+}
+
+.loading-state {
+  padding: 36px;
+  border-radius: 6px;
+  background-color: #f6f8fa;
+  border: 1px solid #e1e4e8;
+}
+
+.request-state-text {
+  text-align: center;
+  color: #586069;
+}
+
+.retry-button {
+  padding: 12px;
+  border: none;
+  border-radius: 6px;
+  font-weight: bold;
+  color: #ffffff;
+  background-color: #d73a49;
+  cursor: pointer;
+  transition: background-color 0.2s;
+
+  &:hover {
+    background-color: #cb2431;
+  }
+}
+
+.inactive {
+  display: none;
+}
+
+/* Styles for the elements from JS */
+.repository-url {
+  color: #000;
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+.repository-name {
+  margin-bottom: 12px;
+  font-weight: 600;
+  font-size: 1.4rem;
+}
+
+.repository-description {
+  margin-bottom: 16px;
+  color: #586069;
+  text-overflow: ellipsis;
+  overflow: hidden;
+}
+
+.repository-stats {
+  display: flex;
+  gap: 24px;
+}
+
+.stats-with-icon-container {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+}
+
+.stats-icon {
+  width: 16px;
+  height: 16px;
+}
+
+.error-state {
+  background-color: #ffeef0;
+  border: 1px solid #d73a49;
+  border-radius: 6px;
+  padding: 36px;
+}
+
+.button-error {
+  background-color: #d73a49;
+}
+
+.fulfilled-state {
+  background-color: #f6f8fa;
+  border: 1px solid #e1e4e8;
+  border-radius: 6px;
+  padding: 16px;
+}
+
+.refresh-background-color {
+  background-color: #000;
+  color: #ffffff;
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+
+  &:hover {
+    background-color: #333;
+  }
+}
+
+.attribution {
+  text-align: center;
+  color: #586069;
+  font-size: 1.4rem;
+}
+
+.attribution-link {
+  font-weight: bold;
+  color: #000;
+}
