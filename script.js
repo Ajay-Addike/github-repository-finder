@@ -1,17 +1,14 @@
 document.addEventListener("DOMContentLoaded", async () => {
   const programmingLanguages = await fetchProgrammingLanguages();
-  const programmingLanguagesSelect = document.querySelector("#programming-languages");
-
-  // ✅ Ensure the function exists before calling it
-  if (typeof populateProgrammingLanguagesSelect === "function") {
-    populateProgrammingLanguagesSelect(programmingLanguagesSelect, programmingLanguages);
-  } else {
-    console.error("populateProgrammingLanguagesSelect is not defined.");
-  }
-
+  const programmingLanguagesSelect = document.querySelector(
+    "#programming-languages"
+  );
+  populateProgrammingLanguagesSelect(
+    programmingLanguagesSelect,
+    programmingLanguages
+  );
   programmingLanguagesSelect.addEventListener("change", handleRequestStates);
 });
-
 
 async function fetchProgrammingLanguages() {
   try {
@@ -25,67 +22,115 @@ async function fetchProgrammingLanguages() {
   }
 }
 
-async function fetchRepositories() {
-  try {
-    const response = await fetch("./data/repos.json"); // Fetch cached data
-    const data = await response.json();
-    return data.items;
-  } catch (error) {
-    console.error("Error loading repositories:", error);
-  }
+function populateProgrammingLanguagesSelect(
+  programmingLanguagesSelect,
+  programmingLanguages
+) {
+  programmingLanguages.forEach((programmingLanguage) => {
+    const option = document.createElement("option");
+    option.value = programmingLanguage.value;
+    option.textContent = programmingLanguage.title;
+
+    programmingLanguagesSelect.appendChild(option);
+  });
 }
 
-async function handleRequestStates(event) {
+const handleRequestStates = async (event) => {
   const programmingLanguagesSelect = document.querySelector(
     "#programming-languages"
   );
-  const requestStatesDiv = document.querySelector("#request-state");
-  
-  let programmingLanguageSelected = event.currentTarget.value;
 
-  if (requestStatesDiv.firstChild) {
-    requestStatesDiv.innerHTML = "";
+  let programmingLanguageSelected = "";
+
+  const requestStatesDiv = document.querySelector("#request-state");
+
+  const fulFilledState = requestStatesDiv.childElementCount > 1;
+
+  if (fulFilledState) {
+    while (requestStatesDiv.firstChild) {
+      requestStatesDiv.removeChild(requestStatesDiv.firstChild);
+    }
+    programmingLanguageSelected = programmingLanguagesSelect.value;
+  } else {
+    programmingLanguagesSelect.removeChild(
+      programmingLanguagesSelect.firstElementChild
+    );
+    programmingLanguageSelected = event.currentTarget.value;
+    requestStatesDiv.removeChild(requestStatesDiv.firstElementChild);
   }
 
   const requestStateText = document.createElement("p");
   requestStateText.textContent = "Loading, please wait...";
   requestStateText.classList.add("request-state-text");
+  requestStatesDiv.classList.remove("error-state");
+  requestStatesDiv.classList.remove("fulfilled-state");
   requestStatesDiv.classList.add("loading-state");
   requestStatesDiv.appendChild(requestStateText);
 
-  fetchRandomRepository(programmingLanguageSelected, requestStatesDiv, requestStateText);
-}
+  fetchRandomRepository(
+    programmingLanguageSelected,
+    requestStatesDiv,
+    requestStateText
+  );
+};
 
-async function fetchRandomRepository(programmingLanguageSelected, requestStatesDiv, requestStateText) {
+async function fetchRandomRepository(
+  programmingLanguageSelected,
+  requestStatesDiv,
+  requestStateText
+) {
   try {
-    const repositories = await fetchRepositories();
-    const filteredRepos = repositories.filter(repo => repo.language === programmingLanguageSelected);
+    const query = programmingLanguageSelected
+      ? `language:${programmingLanguageSelected}`
+      : "stars:>1"; 
+    const response = await fetch(
+      `https://api.github.com/search/repositories?q=${query}&sort=stars&order=desc`
+    );
+    const data = await response.json();
+    const repositories = data.items;
 
-    if (filteredRepos.length === 0) {
-      throw new Error("No repositories found for this language.");
-    }
+    const randomIndex = getRandomIndex(repositories.length);
 
-    const randomIndex = Math.floor(Math.random() * filteredRepos.length);
-    const repo = filteredRepos[randomIndex];
+    const repositoryURL = repositories[randomIndex].html_url;
+    const repositoryName = repositories[randomIndex].name;
+    const repositoryDescription = repositories[randomIndex].description;
+    const repositoryLanguage = repositories[randomIndex].language;
+    const repositoryStars = repositories[randomIndex].stargazers_count;
+    const repositoryForks = repositories[randomIndex].forks;
+    const repositoryOpenIssues = repositories[randomIndex].open_issues_count;
 
     displayRandomRepository(
       requestStatesDiv,
       requestStateText,
-      repo.html_url,
-      repo.name,
-      repo.description,
-      repo.language,
-      repo.stargazers_count,
-      repo.forks,
-      repo.open_issues_count
+      repositoryURL,
+      repositoryName,
+      repositoryDescription,
+      repositoryLanguage,
+      repositoryStars,
+      repositoryForks,
+      repositoryOpenIssues
     );
+
+    displayRefreshButton();
   } catch (error) {
     console.log(`Error fetching repositories: ${error}`);
     displayErrorState(requestStatesDiv, requestStateText);
   }
 }
 
-function displayRandomRepository(requestStatesDiv, requestStateText, URL, name, description, language, stars, forks, openIssues) {
+const getRandomIndex = (arrayLength) => Math.floor(Math.random() * arrayLength);
+
+function displayRandomRepository(
+  requestStatesDiv,
+  requestStateText,
+  URL,
+  name,
+  description,
+  language,
+  stars,
+  forks,
+  openIssues
+) {
   requestStatesDiv.classList.remove("error-state");
   requestStatesDiv.classList.add("fulfilled-state");
   requestStatesDiv.removeChild(requestStateText);
@@ -109,36 +154,73 @@ function displayRandomRepository(requestStatesDiv, requestStateText, URL, name, 
   const repositoryStatsContainer = document.createElement("div");
   repositoryStatsContainer.classList.add("repository-stats");
 
-  const statsHTML = `
-    <div class="stats-with-icon-container">
-      <p>Language: ${language}</p>
-    </div>
-    <div class="stats-with-icon-container">
-      <p>⭐ Stars: ${stars}</p>
-    </div>
-    <div class="stats-with-icon-container">
-      <p>🔀 Forks: ${forks}</p>
-    </div>
-    <div class="stats-with-icon-container">
-      <p>🐞 Open Issues: ${openIssues}</p>
-    </div>
-  `;
+  const languageContainer = document.createElement("div");
+  const repositoryLanguage = document.createElement("p");
+  repositoryLanguage.innerText = language;
+  languageContainer.appendChild(repositoryLanguage);
 
-  repositoryStatsContainer.innerHTML = statsHTML;
-  requestStatesDiv.append(repositoryAnchor, repositoryDescription, repositoryStatsContainer);
+  const starsContainer = document.createElement("div");
+  starsContainer.classList.add("stats-with-icon-container");
+  const starIcon = document.createElement("img");
+  starIcon.classList.add("stats-icon");
+  starIcon.src = "./assets/icons/star.svg";
+  starIcon.alt = "GitHub stars";
+  const repositoryStars = document.createElement("p");
+  repositoryStars.textContent = stars;
+  starsContainer.append(starIcon, repositoryStars);
+
+  const forksContainer = document.createElement("div");
+  forksContainer.classList.add("stats-with-icon-container");
+  const forksIcon = document.createElement("img");
+  forksIcon.classList.add("stats-icon");
+  forksIcon.src = "./assets/icons/git-fork.svg";
+  forksIcon.alt = "GitHub forks";
+  const repositoryForks = document.createElement("p");
+  repositoryForks.textContent = forks;
+  forksContainer.append(forksIcon, repositoryForks);
+
+  const openIssuesContainer = document.createElement("div");
+  openIssuesContainer.classList.add("stats-with-icon-container");
+  const issuesIcon = document.createElement("img");
+  issuesIcon.classList.add("stats-icon");
+  issuesIcon.src = "./assets/icons/circle-alert.svg";
+  issuesIcon.alt = "GitHub issues";
+  const repositoryOpenIssues = document.createElement("p");
+  repositoryOpenIssues.textContent = openIssues;
+  openIssuesContainer.append(issuesIcon, repositoryOpenIssues);
+
+  repositoryStatsContainer.append(
+    languageContainer,
+    starsContainer,
+    forksContainer,
+    openIssuesContainer
+  );
+
+  requestStatesDiv.append(
+    repositoryAnchor,
+    repositoryDescription,
+    repositoryStatsContainer
+  );
+}
+
+function displayRefreshButton(errorState) {
+  const refreshButton = document.querySelector("#retry-button");
+  refreshButton.classList.remove("inactive");
+
+  refreshButton.textContent = errorState ? "Click to retry" : "Refresh";
+
+  const repositoryFinderForm = document.querySelector("#repository-finder-form");
+  repositoryFinderForm.removeEventListener("submit", handleFormSubmit);
+  repositoryFinderForm.addEventListener("submit", handleFormSubmit);
+}
+
+function handleFormSubmit(event) {
+  event.preventDefault();
+  handleRequestStates();
 }
 
 function displayErrorState(requestStatesDiv, requestStateText) {
   requestStatesDiv.classList.add("error-state");
   requestStateText.textContent = "Error fetching repositories";
-  requestStatesDiv.appendChild(requestStateText);
-}
-
-function populateProgrammingLanguagesSelect(programmingLanguagesSelect, programmingLanguages) {
-  programmingLanguages.forEach((programmingLanguage) => {
-    const option = document.createElement("option");
-    option.value = programmingLanguage.value;
-    option.textContent = programmingLanguage.title;
-    programmingLanguagesSelect.appendChild(option);
-  });
+  displayRefreshButton(true);
 }
