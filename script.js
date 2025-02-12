@@ -1,14 +1,17 @@
 document.addEventListener("DOMContentLoaded", async () => {
   const programmingLanguages = await fetchProgrammingLanguages();
-  const programmingLanguagesSelect = document.querySelector(
-    "#programming-languages"
-  );
-  populateProgrammingLanguagesSelect(
-    programmingLanguagesSelect,
-    programmingLanguages
-  );
+  const programmingLanguagesSelect = document.querySelector("#programming-languages");
+
+  // ✅ Ensure the function exists before calling it
+  if (typeof populateProgrammingLanguagesSelect === "function") {
+    populateProgrammingLanguagesSelect(programmingLanguagesSelect, programmingLanguages);
+  } else {
+    console.error("populateProgrammingLanguagesSelect is not defined.");
+  }
+
   programmingLanguagesSelect.addEventListener("change", handleRequestStates);
 });
+
 
 async function fetchProgrammingLanguages() {
   try {
@@ -129,4 +132,13 @@ function displayErrorState(requestStatesDiv, requestStateText) {
   requestStatesDiv.classList.add("error-state");
   requestStateText.textContent = "Error fetching repositories";
   requestStatesDiv.appendChild(requestStateText);
+}
+
+function populateProgrammingLanguagesSelect(programmingLanguagesSelect, programmingLanguages) {
+  programmingLanguages.forEach((programmingLanguage) => {
+    const option = document.createElement("option");
+    option.value = programmingLanguage.value;
+    option.textContent = programmingLanguage.title;
+    programmingLanguagesSelect.appendChild(option);
+  });
 }
