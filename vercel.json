@@ -1,7 +1,10 @@
 {
-    "version": 2,
-    "builds": [{ "src": "api/github.js", "use": "@vercel/node" }],
-    "routes": [{ "src": "/api/github", "dest": "api/github.js" }]
-  }
-
-  
+  "version": 2,
+  "builds": [
+    { "src": "index.html", "use": "@vercel/static" },
+    { "src": "api/github.js", "use": "@vercel/node" }
+  ],
+  "routes": [
+    { "src": "/api/github", "dest": "api/github.js" }
+  ]
+}
