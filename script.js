@@ -1,76 +1,226 @@
 document.addEventListener("DOMContentLoaded", async () => {
   const programmingLanguages = await fetchProgrammingLanguages();
-  const programmingLanguagesSelect = document.querySelector("#programming-languages");
-  
-  populateProgrammingLanguagesSelect(programmingLanguagesSelect, programmingLanguages);
+  const programmingLanguagesSelect = document.querySelector(
+    "#programming-languages"
+  );
+  populateProgrammingLanguagesSelect(
+    programmingLanguagesSelect,
+    programmingLanguages
+  );
   programmingLanguagesSelect.addEventListener("change", handleRequestStates);
 });
-
 
 async function fetchProgrammingLanguages() {
   try {
     const response = await fetch(
       "https://raw.githubusercontent.com/kamranahmedse/githunt/master/src/components/filters/language-filter/languages.json"
     );
-    return await response.json();
+    const programmingLanguages = await response.json();
+    return programmingLanguages;
   } catch (error) {
     console.log(`Error fetching programming languages: ${error}`);
   }
 }
 
-function populateProgrammingLanguagesSelect(selectElement, languages) {
-  languages.forEach(language => {
+function populateProgrammingLanguagesSelect(
+  programmingLanguagesSelect,
+  programmingLanguages
+) {
+  programmingLanguages.forEach((programmingLanguage) => {
     const option = document.createElement("option");
-    option.value = language.value;
-    option.textContent = language.title;
-    selectElement.appendChild(option);
+    option.value = programmingLanguage.value;
+    option.textContent = programmingLanguage.title;
+
+    programmingLanguagesSelect.appendChild(option);
   });
 }
 
-async function handleRequestStates(event) {
-  const programmingLanguageSelected = event.currentTarget.value;
+const handleRequestStates = async (event) => {
+  const programmingLanguagesSelect = document.querySelector(
+    "#programming-languages"
+  );
+
+  let programmingLanguageSelected = "";
+
   const requestStatesDiv = document.querySelector("#request-state");
 
-  requestStatesDiv.innerHTML = `<p class="request-state-text">Loading, please wait...</p>`;
-  requestStatesDiv.classList.add("loading-state");
+  const fulFilledState = requestStatesDiv.childElementCount > 1;
 
-  fetchRandomRepository(programmingLanguageSelected, requestStatesDiv);
-}
-
-async function fetchRandomRepository(programmingLanguageSelected, requestStatesDiv) {
-  try {
-    const response = await fetch(
-      `https://github-repository-finder-main-9q1f1ewn2-ajay-addikes-projects.vercel.app/api/github?language=${programmingLanguageSelected}`
+  if (fulFilledState) {
+    while (requestStatesDiv.firstChild) {
+      requestStatesDiv.removeChild(requestStatesDiv.firstChild);
+    }
+    programmingLanguageSelected = programmingLanguagesSelect.value;
+  } else {
+    programmingLanguagesSelect.removeChild(
+      programmingLanguagesSelect.firstElementChild
     );
+    programmingLanguageSelected = event.currentTarget.value;
+    requestStatesDiv.removeChild(requestStatesDiv.firstElementChild);
+  }
 
-    if (!response.ok) throw new Error(`GitHub API error: ${response.status}`);
+  const requestStateText = document.createElement("p");
+  requestStateText.textContent = "Loading, please wait...";
+  requestStateText.classList.add("request-state-text");
+  requestStatesDiv.classList.remove("error-state");
+  requestStatesDiv.classList.remove("fulfilled-state");
+  requestStatesDiv.classList.add("loading-state");
+  requestStatesDiv.appendChild(requestStateText);
 
+  fetchRandomRepository(
+    programmingLanguageSelected,
+    requestStatesDiv,
+    requestStateText
+  );
+};
+
+async function fetchRandomRepository(
+  programmingLanguageSelected,
+  requestStatesDiv,
+  requestStateText
+) {
+  try {
+    const query = programmingLanguageSelected
+      ? `language:${programmingLanguageSelected}`
+      : "stars:>1"; 
+    const response = await fetch(
+      `https://api.github.com/search/repositories?q=${query}&sort=stars&order=desc`
+    );
     const data = await response.json();
     const repositories = data.items;
 
-    if (!repositories.length) throw new Error("No repositories found.");
+    const randomIndex = getRandomIndex(repositories.length);
 
-    const randomIndex = Math.floor(Math.random() * repositories.length);
-    const repo = repositories[randomIndex];
+    const repositoryURL = repositories[randomIndex].html_url;
+    const repositoryName = repositories[randomIndex].name;
+    const repositoryDescription = repositories[randomIndex].description;
+    const repositoryLanguage = repositories[randomIndex].language;
+    const repositoryStars = repositories[randomIndex].stargazers_count;
+    const repositoryForks = repositories[randomIndex].forks;
+    const repositoryOpenIssues = repositories[randomIndex].open_issues_count;
 
-    displayRepository(requestStatesDiv, repo);
+    displayRandomRepository(
+      requestStatesDiv,
+      requestStateText,
+      repositoryURL,
+      repositoryName,
+      repositoryDescription,
+      repositoryLanguage,
+      repositoryStars,
+      repositoryForks,
+      repositoryOpenIssues
+    );
+
+    displayRefreshButton();
   } catch (error) {
     console.log(`Error fetching repositories: ${error}`);
-    requestStatesDiv.innerHTML = `<p class="request-state-text">Error fetching repositories</p>`;
+    displayErrorState(requestStatesDiv, requestStateText);
   }
 }
 
-function displayRepository(container, repo) {
-  container.innerHTML = `
-    <a href="${repo.html_url}" target="_blank" class="repository-url">
-      <h2 class="repository-name">${repo.name}</h2>
-    </a>
-    <p class="repository-description">${repo.description || "No description available."}</p>
-    <div class="repository-stats">
-      <p>🌐 Language: ${repo.language || "N/A"}</p>
-      <p>⭐ Stars: ${repo.stargazers_count}</p>
-      <p>🍴 Forks: ${repo.forks}</p>
-      <p>🐛 Open Issues: ${repo.open_issues_count}</p>
-    </div>
-  `;
+const getRandomIndex = (arrayLength) => Math.floor(Math.random() * arrayLength);
+
+function displayRandomRepository(
+  requestStatesDiv,
+  requestStateText,
+  URL,
+  name,
+  description,
+  language,
+  stars,
+  forks,
+  openIssues
+) {
+  requestStatesDiv.classList.remove("error-state");
+  requestStatesDiv.classList.add("fulfilled-state");
+  requestStatesDiv.removeChild(requestStateText);
+
+  const repositoryAnchor = document.createElement("a");
+  repositoryAnchor.classList.add("repository-url");
+  repositoryAnchor.href = URL;
+  repositoryAnchor.target = "_blank";
+  repositoryAnchor.rel = "noopener noreferrer";
+
+  const repositoryName = document.createElement("h2");
+  repositoryName.classList.add("repository-name");
+  repositoryName.textContent = name;
+
+  repositoryAnchor.appendChild(repositoryName);
+
+  const repositoryDescription = document.createElement("p");
+  repositoryDescription.classList.add("repository-description");
+  repositoryDescription.textContent = description;
+
+  const repositoryStatsContainer = document.createElement("div");
+  repositoryStatsContainer.classList.add("repository-stats");
+
+  const languageContainer = document.createElement("div");
+  const repositoryLanguage = document.createElement("p");
+  repositoryLanguage.innerText = language;
+  languageContainer.appendChild(repositoryLanguage);
+
+  const starsContainer = document.createElement("div");
+  starsContainer.classList.add("stats-with-icon-container");
+  const starIcon = document.createElement("img");
+  starIcon.classList.add("stats-icon");
+  starIcon.src = "./assets/icons/star.svg";
+  starIcon.alt = "GitHub stars";
+  const repositoryStars = document.createElement("p");
+  repositoryStars.textContent = stars;
+  starsContainer.append(starIcon, repositoryStars);
+
+  const forksContainer = document.createElement("div");
+  forksContainer.classList.add("stats-with-icon-container");
+  const forksIcon = document.createElement("img");
+  forksIcon.classList.add("stats-icon");
+  forksIcon.src = "./assets/icons/git-fork.svg";
+  forksIcon.alt = "GitHub forks";
+  const repositoryForks = document.createElement("p");
+  repositoryForks.textContent = forks;
+  forksContainer.append(forksIcon, repositoryForks);
+
+  const openIssuesContainer = document.createElement("div");
+  openIssuesContainer.classList.add("stats-with-icon-container");
+  const issuesIcon = document.createElement("img");
+  issuesIcon.classList.add("stats-icon");
+  issuesIcon.src = "./assets/icons/circle-alert.svg";
+  issuesIcon.alt = "GitHub issues";
+  const repositoryOpenIssues = document.createElement("p");
+  repositoryOpenIssues.textContent = openIssues;
+  openIssuesContainer.append(issuesIcon, repositoryOpenIssues);
+
+  repositoryStatsContainer.append(
+    languageContainer,
+    starsContainer,
+    forksContainer,
+    openIssuesContainer
+  );
+
+  requestStatesDiv.append(
+    repositoryAnchor,
+    repositoryDescription,
+    repositoryStatsContainer
+  );
+}
+
+function displayRefreshButton(errorState) {
+  const refreshButton = document.querySelector("#retry-button");
+  refreshButton.classList.remove("inactive");
+
+  refreshButton.textContent = errorState ? "Click to retry" : "Refresh";
+
+  const repositoryFinderForm = document.querySelector("#repository-finder-form");
+  repositoryFinderForm.removeEventListener("submit", handleFormSubmit);
+  repositoryFinderForm.addEventListener("submit", handleFormSubmit);
+}
+
+function handleFormSubmit(event) {
+  event.preventDefault();
+  handleRequestStates();
+}
+
+function displayErrorState(requestStatesDiv, requestStateText) {
+  requestStatesDiv.classList.add("error-state");
+  requestStateText.textContent = "Error fetching repositories";
+  displayRefreshButton(true);
 }

@@ -4,24 +4,35 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>GitHub Repository Finder</title>
-    <link rel="stylesheet" href="css/reset.css" />
-    <link rel="stylesheet" href="css/styles.css" />
+    <link rel="stylesheet" href="./css/reset.css" />
+    <link rel="stylesheet" href="./css/styles.css" />
   </head>
   <body>
     <div class="container">
       <div class="header-container">
-        <img class="github-logo" src="/assets/logos/github-logo.png" alt="GitHub logo" />
-        <img class="github-logo" src="/assets/logos/github-logo.png" alt="GitHub logo" />
+        <img
+          class="github-logo"
+          src="./assets/logos/github-logo.png"
+          alt="GitHub logo"
+        />
         <h1 class="title">GitHub Repository Finder</h1>
       </div>
       <form id="repository-finder-form" class="form">
-        <select id="programming-languages" class="select-programming-languages">
+        <select
+          name="programming-languages"
+          id="programming-languages"
+          class="select-programming-languages"
+        >
           <option>Select a language</option>
         </select>
         <div id="request-state" class="loading-state">
-          <p id="request-state-text" class="request-state-text">Please select a language</p>
+          <p id="request-state-text" class="request-state-text">
+            Please select a language
+          </p>
         </div>
-        <button id="retry-button" class="retry-button inactive">Click to retry</button>
+        <button id="retry-button" class="retry-button inactive">
+          Click to retry
+        </button>
       </form>
     </div>
 
