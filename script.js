@@ -6,6 +6,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   programmingLanguagesSelect.addEventListener("change", handleRequestStates);
 });
 
+
 async function fetchProgrammingLanguages() {
   try {
     const response = await fetch(
