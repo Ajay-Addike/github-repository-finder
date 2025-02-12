@@ -14,7 +14,7 @@ jobs:
 
       - name: Fetch GitHub Repository Data
         run: |
-          curl -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+          curl -H "Authorization: token ${{ secrets.TOKEN_REPOSITORY_FINDER }}" \
             "https://api.github.com/search/repositories?q=language:JavaScript&sort=stars&order=desc" \
             -o data/repos.json
 
