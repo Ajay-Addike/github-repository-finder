@@ -85,40 +85,54 @@ const handleRequestStates = async (event) => {
   );
 };
 
-async function fetchRandomRepository(programmingLanguageSelected, requestStatesDiv, requestStateText) {
+async function fetchRandomRepository(
+  programmingLanguageSelected,
+  requestStatesDiv,
+  requestStateText
+) {
   try {
-      const response = await fetch(`http://localhost:5000/api/github?language=${programmingLanguageSelected}`);
-      if (!response.ok) {
-          throw new Error(`GitHub API error: ${response.status} - ${response.statusText}`);
-      }
+    // Fetch the repositories from the GitHub API
+    const query = programmingLanguageSelected
+      ? `language:${programmingLanguageSelected}`
+      : "stars:>1"; // Default query if the user doesn't select a programming language (get the most starred repositories in any language)
+    const response = await fetch(
+      `https://api.github.com/search/repositories?q=${query}&sort=stars&order=desc`
+    );
+    const data = await response.json();
+    const repositories = data.items;
 
-      const data = await response.json();
-      if (!data.items || data.items.length === 0) {
-          throw new Error("No repositories found. Try another language.");
-      }
+    const randomIndex = getRandomIndex(repositories.length);
 
-      const repositories = data.items;
-      const randomIndex = Math.floor(Math.random() * repositories.length);
+    const repositoryURL = repositories[randomIndex].html_url;
+    const repositoryName = repositories[randomIndex].name;
+    const repositoryDescription = repositories[randomIndex].description;
+    const repositoryLanguage = repositories[randomIndex].language;
+    const repositoryStars = repositories[randomIndex].stargazers_count;
+    const repositoryForks = repositories[randomIndex].forks;
+    const repositoryOpenIssues = repositories[randomIndex].open_issues_count;
 
-      displayRandomRepository(
-          requestStatesDiv,
-          requestStateText,
-          repositories[randomIndex].html_url,
-          repositories[randomIndex].name,
-          repositories[randomIndex].description,
-          repositories[randomIndex].language,
-          repositories[randomIndex].stargazers_count,
-          repositories[randomIndex].forks,
-          repositories[randomIndex].open_issues_count
-      );
+    // console.log(
+    //   `Name: ${repositoryName}\nDesc: ${repositoryDescription}\nLang: ${repositoryLanguage}\nStars: ${repositoryStars}\nForks: ${repositoryForks}\nIssues: ${repositoryOpenIssues}`
+    // );
 
-      displayRefreshButton();
+    displayRandomRepository(
+      requestStatesDiv,
+      requestStateText,
+      repositoryURL,
+      repositoryName,
+      repositoryDescription,
+      repositoryLanguage,
+      repositoryStars,
+      repositoryForks,
+      repositoryOpenIssues
+    );
+
+    displayRefreshButton();
   } catch (error) {
-      console.error(`Error fetching repositories: ${error.message}`);
-      displayErrorState(requestStatesDiv, requestStateText);
+    console.log(`Error fetching repositories: ${error}`);
+    displayErrorState(requestStatesDiv, requestStateText);
   }
 }
-
 
 const getRandomIndex = (arrayLength) => Math.floor(Math.random() * arrayLength);
 
